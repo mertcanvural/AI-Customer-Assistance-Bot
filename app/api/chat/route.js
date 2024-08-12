@@ -1,4 +1,4 @@
-import {NextResponse} from 'next/server';
+import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 const systemPrompt = `
@@ -13,44 +13,41 @@ const systemPrompt = `
 Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all users.
 `;
 
-export async function post(request) {
-    const openai = new OpenAI()
-    const data = await req.json()
+export async function POST(request) {
+    const openai = new OpenAI();
+    const data = await request.json();  // Corrected from 'req' to 'request'
 
-    // doesn't block while waiting
-    const completion = await openai.chatCompletion.create({
+    // Creating the OpenAI completion stream
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
         messages: [
-        {
-            role: 'system',
-            content: systemPrompt
-        },
-        ...data,
-    ],
-    model: 'gpt-4o-mini',
-    stream: true,
-    })
+            {
+                role: 'system',
+                content: systemPrompt,
+            },
+            ...data,
+        ],
+        stream: true,
+    });
 
     const stream = new ReadableStream({
-        // how the stream starts
         async start(controller) {
-            const encoder = new TextEncoder()
-            try{
+            const encoder = new TextEncoder();
+            try {
                 for await (const chunk of completion) {
-                    const content = chunk.choices[0]?.delta?.content
+                    const content = chunk.choices[0]?.delta?.content;
                     if (content) {
-                        const text = encoder.encode(content)
-                        controller.enqueue(text)
+                        const text = encoder.encode(content);
+                        controller.enqueue(text);
                     }
                 }
-            }
-            catch (err) {
-                controller.error(err)
-            }
-            finally {
-                controller.close()
+            } catch (err) {
+                controller.error(err);
+            } finally {
+                controller.close();
             }
         },
-    })
+    });
 
-    return new NextResponse(stream)
+    return new NextResponse(stream);
 }
