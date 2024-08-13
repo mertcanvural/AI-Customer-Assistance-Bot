@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import Groq from "groq-sdk";
 
 const systemPrompt = `
 1. This platform offers AI-powered interviews tailored for software engineering positions.
@@ -13,19 +13,20 @@ const systemPrompt = `
 Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all users.
 `;
 
-export async function POST(request) {
-    const openai = new OpenAI();
-    const data = await request.json();  // Corrected from 'req' to 'request'
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    // Creating the OpenAI completion stream
-    const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+export async function POST(request) {
+    const data = await request.json();
+
+    // Creating the Groq completion stream
+    const completion = await groq.chat.completions.create({
+        model: 'llama3-8b-8192',
         messages: [
             {
                 role: 'system',
                 content: systemPrompt,
             },
-            ...data,
+            ...data.messages,  // user messages are here
         ],
         stream: true,
     });

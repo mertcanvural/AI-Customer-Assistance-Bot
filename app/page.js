@@ -17,15 +17,15 @@ export default function Home() {
     setMessage('')
     setMessages((messages) => [
       ...messages,
-      {role: 'user', content: message},
-      {role: 'assistant', content: ''},
+      { role: 'user', content: message },
+      { role: 'assistant', content: '' },
     ])
     const response = fetch('/api/chat', {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify([...messages, { role: 'user', content: message }]),
+      body: JSON.stringify({ messages: [...messages, { role: 'user', content: message }] }),
     }).then(async (res) => {
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -39,7 +39,7 @@ export default function Home() {
         setMessages((messages) => {
           let lastMessage = messages[messages.length - 1]
           let otherMessages = messages.slice(0, messages.length - 1)
-          return[
+          return [
             ...otherMessages,
             {
               ...lastMessage,
